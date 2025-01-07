@@ -1,10 +1,9 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import axios, { AxiosError } from "axios";
+import axios, { AxiosError, AxiosResponse } from "axios";
 import Header from "@/components/Header";
 import HomeCarousel from "@/components/HomeCarousel";
 import CompanyDetails from "@/components/CompanyDetails";
-import { useRouter } from "next/router";
 
 interface Company {
   id: string;
@@ -14,34 +13,35 @@ interface Company {
 }
 
 const Details = () => {
-  const router = useRouter();
-  const { id } = router.query;
-
   const [companyData, setCompanyData] = useState<Company | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-
+  const [id, setId] = useState<string | null>(null);
+  console.log(id);
   useEffect(() => {
-    if (!id) return;
+    // Extract the `id` from the URL using window.location
+    const currentUrl = window.location.href;
+    const urlParts = currentUrl.split("/"); // Split URL by slashes
+    const companyId = urlParts[urlParts.length - 1]; // The `id` is assumed to be the last part of the URL
+    setId(companyId); // Set the `id` in state
 
-    const fetchCompanyData = async () => {
-      try {
-        const response = await axios.get<{ data: { data: Company } }>(
-          `/api/companies/${id}`
-        );
+    if (companyId) {
+      const fetchCompanyData = async () => {
+        try {
+          const response: AxiosResponse<{ data: Company }> = await axios.get(
+            `/api/companies/${companyId}`
+          );
+          setCompanyData(response.data.data); // Set company data
+          setLoading(false);
+        } catch (err) {
+          const axiosError = err as AxiosError;
+          setLoading(false);
+          console.error(axiosError);
+        }
+      };
 
-        //@ts-expect-error Response data format may not align with TypeScript expectations
-        setCompanyData(response.data.data);
-        setLoading(false);
-      } catch (err) {
-        const axiosError = err as AxiosError;
-
-        setLoading(false);
-        console.error(axiosError);
-      }
-    };
-
-    fetchCompanyData();
-  }, [id]);
+      fetchCompanyData();
+    }
+  }, []); // Empty dependency array ensures the effect runs only once on mount
 
   if (loading) return <div>Loading...</div>;
 
@@ -49,7 +49,7 @@ const Details = () => {
     <div>
       <Header />
       <HomeCarousel />
-      {companyData && <CompanyDetails company={companyData} />}{" "}
+      {companyData && <CompanyDetails company={companyData} />}
     </div>
   );
 };

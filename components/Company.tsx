@@ -1,6 +1,5 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 
 // Define the structure of the company object
 interface Company {
@@ -12,7 +11,6 @@ interface Company {
 const Company = () => {
   const [data, setData] = useState<Company[]>([]); // State to store the list of companies
   const [loading, setLoading] = useState<boolean>(false); // Loading state
-  const router = useRouter();
 
   // Static images for the companies
   const staticImages: Record<string, string> = {
@@ -67,7 +65,10 @@ const Company = () => {
               <div
                 key={company.id}
                 className="flex items-center space-x-4"
-                onClick={() => router.push(`/details/${company.id}`)}
+                onClick={() => {
+                  // Redirect to the company details page
+                  window.location.href = `/details/${company.id}`;
+                }}
               >
                 {/* Circular Image */}
                 <div className="w-16 h-16 rounded-full overflow-hidden shadow-lg flex items-center justify-center bg-gray-200">
